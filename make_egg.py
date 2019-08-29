@@ -43,8 +43,8 @@ class bsla_thesis(Component): #as in thesis
                 name='%s - number_of_water_molecules' % name)
         self.interface_width_air_solvent = possibly_create_parameter(15,
                 name='%s - interface_width_air_solvent' % name)
-        self.interface_width_protein_solvent = possibly_create_parameter(0.1,
-                name='%s - interface_width_protein_solvent' % name)
+        #self.interface_width_protein_solvent = possibly_create_parameter(0.1,
+        #        name='%s - interface_width_protein_solvent' % name)
         self.sld_of_protein = possibly_create_parameter(3.23, #*(10**(-6))
                 name='%s - sld_of_protein' % name)
         self.d2o_to_h2o_ratio = possibly_create_parameter(1.0,
@@ -66,7 +66,7 @@ class bsla_thesis(Component): #as in thesis
         #          self.protein_length,
         #          self.number_of_water_molecules,
         #          self.interface_width_air_solvent,
-        #          self.interface_width_protein_solvent,
+        #          #self.interface_width_protein_solvent,
         #          self.sld_of_protein,
         #          self.d2o_to_h2o_ratio])
         
@@ -88,7 +88,7 @@ class bsla_thesis(Component): #as in thesis
         #print(area_prot)
         area_total = area_wat+area_prot
         sld_prot = self.sld_protein(area_prot,area_total)
-        sld_wat = self.sld_water(area_wat,area_total)
+        sld_wat = self.sld_water(area_wat, area_total)
         #print("last",len(sld_prot),len(sld_wat))
         return sld_prot+sld_wat
 
@@ -100,7 +100,7 @@ class bsla_thesis(Component): #as in thesis
                   self.protein_length,
                   self.number_of_water_molecules,
                   self.interface_width_air_solvent,
-                  self.interface_width_protein_solvent,
+                  #self.interface_width_protein_solvent,
                   self.sld_of_protein,
                   self.d2o_to_h2o_ratio])
         return p
@@ -259,8 +259,8 @@ def test_run():
     bt.interface_protein_solvent.setp(vary=True, bounds=(11, 40))
     bt.protein_length.setp(vary=True, bounds=(25, 55))
     bt.number_of_water_molecules.setp(vary=True, bounds=(1, 10000))
-    bt.interface_width_air_solvent.setp(vary=True, bounds=(0, 30))
-    bt.interface_width_protein_solvent.setp(vary=True, bounds=(0, 5))
+    bt.interface_width_air_solvent.setp(vary=True, bounds=(0.001, 30))
+    #bt.interface_width_protein_solvent.setp(vary=True, bounds=(0, 5))
     bt.sld_of_protein.setp(vary=True, bounds=(1.92, 6.21)) # *(10**(-6))
     bt.d2o_to_h2o_ratio.setp(vary=True, bounds=(0, 1))
 #     if isinstance(bt, Component):
@@ -278,9 +278,20 @@ def test_run():
     from refnx.reflect import ReflectModel
     model = ReflectModel(bt)#structure)
     from refnx.analysis import Transform, CurveFitter, Objective
-    obj = Objective(model,data)
-    fitter = CurveFitter(obj)
+    objective = Objective(model,data)
+    fitter = CurveFitter(objective)
     fitter.fit('differential_evolution');
+    import matplotlib.pyplot as plt
+    #%matplotlib notebook
+#     plt.plot(*bt.sld_profile())
+    objective.plot()
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xlabel('Q')
+    plt.ylabel('Reflectivity')
+    plt.legend()
+    print(bt)
+    plt.show()
     
 if __name__ == '__main__':
     test_run()
